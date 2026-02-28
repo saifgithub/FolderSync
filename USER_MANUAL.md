@@ -40,7 +40,7 @@ FolderSync keeps two folders — **Left** and **Right** — in sync with each ot
 
 ### From a DMG
 
-1. Download **FolderSync-x.x.x.dmg** from the [Releases](https://github.com/YOUR_USERNAME/FolderSync/releases) page.
+1. Download **FolderSync-x.x.x.dmg** from the [Releases](https://github.com/saifgithub/FolderSync/releases) page.
 2. Double-click the DMG to mount it.
 3. Drag **FolderSync.app** into the **Applications** shortcut.
 4. Eject the DMG.
@@ -341,4 +341,4 @@ Or open **Console.app** and filter for `FolderSync`.
 
 ---
 
-*For support, bug reports, or feature requests, please open an issue on [GitHub](https://github.com/YOUR_USERNAME/FolderSync/issues).*
+*For support, bug reports, or feature requests, please open an issue on [GitHub](https://github.com/saifgithub/FolderSync/issues).*

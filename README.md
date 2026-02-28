@@ -47,7 +47,7 @@
 ### Build from source
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/FolderSync.git
+git clone https://github.com/saifgithub/FolderSync.git
 cd FolderSync
 make app-rel          # release build → dist/FolderSync.app
 open dist/FolderSync.app

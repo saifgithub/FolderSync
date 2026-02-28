@@ -37,5 +37,5 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
-[Unreleased]: https://github.com/YOUR_USERNAME/FolderSync/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/YOUR_USERNAME/FolderSync/releases/tag/v1.0.0
+[Unreleased]: https://github.com/saifgithub/FolderSync/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/saifgithub/FolderSync/releases/tag/v1.0.0
