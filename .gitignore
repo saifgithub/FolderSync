@@ -1,0 +1,53 @@
+# ── Swift / SPM ──────────────────────────────────────────────────────────────
+.build/
+.swiftpm/
+*.o
+*.d
+*.swp
+
+# ── Xcode ────────────────────────────────────────────────────────────────────
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+# ── Distribution artefacts ───────────────────────────────────────────────────
+dist/
+*.dmg
+*.pkg
+*.zip
+
+# ── macOS ────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# ── VS Code ──────────────────────────────────────────────────────────────────
+.vscode/
+*.code-workspace
+
+# ── Secrets / credentials ────────────────────────────────────────────────────
+*.p12
+*.cer
+*.provisionprofile
+.env
+.env.*
+notarize_creds.sh
+
+# ── Test artefacts ───────────────────────────────────────────────────────────
+/tmp/foldersync_*.txt
+/tmp/foldersync_*.log

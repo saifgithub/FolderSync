@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Identity -->
+    <key>CFBundleIdentifier</key>
+    <string>com.foldersync.app</string>
+
+    <key>CFBundleName</key>
+    <string>FolderSync</string>
+
+    <key>CFBundleDisplayName</key>
+    <string>FolderSync</string>
+
+    <key>CFBundleExecutable</key>
+    <string>FolderSync</string>
+
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+
+    <key>CFBundleSignature</key>
+    <string>????</string>
+
+    <!-- Version -->
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+
+    <key>CFBundleVersion</key>
+    <string>1</string>
+
+    <!-- Minimum macOS -->
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+
+    <!-- Hide from Dock while running as agent — set to false for normal app -->
+    <key>LSUIElement</key>
+    <false/>
+
+    <!-- High-res display support -->
+    <key>NSHighResolutionCapable</key>
+    <true/>
+
+    <!-- Privacy usage descriptions (shown in System Settings → Privacy) -->
+    <key>NSDesktopFolderUsageDescription</key>
+    <string>FolderSync needs access to read and sync files on your Desktop.</string>
+
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>FolderSync needs access to read and sync files in your Documents folder.</string>
+
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>FolderSync needs access to read and sync files in your Downloads folder.</string>
+
+    <key>NSRemovableVolumesUsageDescription</key>
+    <string>FolderSync needs access to sync files on external drives and volumes.</string>
+
+    <!-- App category -->
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+
+    <!-- Principal class -->
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+</dict>
+</plist>

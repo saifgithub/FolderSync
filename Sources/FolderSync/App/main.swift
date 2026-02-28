@@ -1,0 +1,3 @@
+import FolderSyncCore
+
+FolderSyncApp.run()

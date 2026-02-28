@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+        App Sandbox — disabled for a local developer/power-user utility.
+        Without sandbox the app gets full filesystem access without prompts.
+        If you later target the Mac App Store, flip this to true and add the
+        individual entitlements below under the sandbox umbrella.
+    -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+
+    <!--
+        Hardened Runtime — keep enabled even outside the sandbox.
+        Required for notarisation if you ever distribute outside the App Store.
+    -->
+    <!-- Uncomment when signing for distribution:
+    <key>com.apple.security.cs.allow-jit</key>
+    <false/>
+    -->
+
+    <!--
+        User-selected file read/write.
+        Lets the app access any folder the user explicitly picks via NSOpenPanel.
+    -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+
+    <!--
+        Downloads folder read/write.
+    -->
+    <key>com.apple.security.files.downloads.read-write</key>
+    <true/>
+
+    <!--
+        Removable volumes (USB drives, SD cards, external HDDs).
+    -->
+    <key>com.apple.security.files.all</key>
+    <true/>
+
+    <!--
+        Needed for FSEvents on arbitrary directories outside the sandbox.
+        (No-op when sandbox is disabled, but documents intent.)
+    -->
+    <key>com.apple.security.temporary-exception.files.absolute-path.read-write</key>
+    <array>
+        <string>/</string>
+    </array>
+</dict>
+</plist>

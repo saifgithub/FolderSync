@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: macos-14        # Apple Silicon runner (Sonoma)
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Cache SPM dependencies
+        uses: actions/cache@v4
+        with:
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Build (debug)
+        run: swift build 2>&1
+
+      - name: Run tests
+        run: swift test 2>&1
+
+      - name: Build release app bundle
+        run: |
+          chmod +x scripts/bundle.sh
+          scripts/bundle.sh release
+
+      - name: Verify codesign
+        run: codesign --verify --deep --strict dist/FolderSync.app
+
+      - name: Upload app bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FolderSync-app-${{ github.sha }}
+          path: dist/FolderSync.app
+          retention-days: 7
+
+  # ── Release job: runs only on version tags (v*.*.*) ───────────────────────
+  release:
+    name: Package & Release
+    needs: build-and-test
+    runs-on: macos-14
+    if: startsWith(github.ref, 'refs/tags/v')
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # needed for git describe
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Cache SPM dependencies
+        uses: actions/cache@v4
+        with:
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Build & package DMG (ad-hoc signed)
+        run: |
+          chmod +x scripts/sign_and_dmg.sh
+          scripts/sign_and_dmg.sh release
+
+      - name: Get version tag
+        id: tag
+        run: echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: FolderSync ${{ steps.tag.outputs.version }}
+          body_path: CHANGELOG.md
+          files: dist/FolderSync-*.dmg
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
