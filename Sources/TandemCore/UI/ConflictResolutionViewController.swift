@@ -114,7 +114,7 @@ final class ConflictResolutionViewController: NSViewController {
 
     /// Per-pair UserDefaults key — different pairs can have different confirmation preferences.
     private var skipConfirmKey: String {
-        "FolderSync.skipForceCopyConfirmation.pair\(pair.id ?? 0)"
+        "Tandem.skipForceCopyConfirmation.pair\(pair.id ?? 0)"
     }
 
     /// Shows a confirmation alert (unless the user previously checked "Don't ask me again"

@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a problem you've found in FolderSync
+about: Report a problem you've found in Tandem
 title: "[Bug] "
 labels: bug
 assignees: ''
@@ -26,14 +26,14 @@ What actually happened. Include screenshots if helpful.
 
 ## Environment
 
-- **FolderSync version:** (e.g. 1.0.0 — visible in About FolderSync)
+- **Tandem version:** (e.g. 1.0.0 — visible in About Tandem)
 - **macOS version:** (e.g. 14.4 Sonoma)
 - **Hardware:** Apple Silicon / Intel
 
 ## Console / Log Output
 
 ```
-Paste relevant output from Console.app (filter: "FolderSync") here.
+Paste relevant output from Console.app (filter: "Tandem") here.
 ```
 
 ## Additional Context

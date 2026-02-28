@@ -1,7 +1,7 @@
-# FolderSync - Technical Documentation
+# Tandem - Technical Documentation
 
 ## 1. Overview
-FolderSync is a native macOS utility designed to keep two folders in sync with each other. It provides a robust diff engine, side-by-side tree UI, secure backup capabilities, and support for multiple sync pairs with advanced exclusion rules.
+Tandem is a native macOS utility designed to keep two folders in sync with each other. It provides a robust diff engine, side-by-side tree UI, secure backup capabilities, and support for multiple sync pairs with advanced exclusion rules.
 
 ## 2. Requirements
 - **Core Functionality:** Keep two folders in sync (Left and Right).
@@ -21,7 +21,7 @@ FolderSync is a native macOS utility designed to keep two folders in sync with e
 - **Packaging & Signing:** Custom shell script (`scripts/bundle.sh`) for assembling the `.app` bundle and applying Ad-hoc codesigning.
 
 ## 4. Architecture & Technical Decisions
-- **SPM Structure:** The project is split into a `FolderSyncCore` library target (containing all app logic, UI, and data models) and a `FolderSync` executable target (containing only `main.swift`). This enforces clean separation and improves testability.
+- **SPM Structure:** The project is split into a `TandemCore` library target (containing all app logic, UI, and data models) and a `Tandem` executable target (containing only `main.swift`). This enforces clean separation and improves testability.
 - **Database (GRDB):** Chosen for its robust SQLite wrapper, thread-safe `DatabasePool`, and reactive `ValueObservation` capabilities. The database stores `SyncPair`, `TrackedFile`, `BackupRecord`, and `ExclusionRule` models.
 - **Diff Engine:** Uses a custom `FileScanner` that recursively walks directories using `FileManager.enumerator`, applies exclusion rules, and computes SHA-256 checksums for accurate diffing. The `DiffEngine` compares left and right scans to produce a `DiffSummary`.
 - **File Watching:** Utilizes the native macOS FSEvents C API (`FSEventWatcher`) for real-time sync triggers, debounced to prevent excessive sync operations. A `ScheduledTicker` handles time-based syncs.
@@ -43,4 +43,4 @@ FolderSync is a native macOS utility designed to keep two folders in sync with e
 ## 7. Build & Deployment
 - **VS Code Workflow:** The project is designed to be developed entirely within Visual Studio Code, using Xcode only as a CLI toolchain.
 - **Makefile:** Provides targets for `build`, `test`, `app`, `run`, `install`, and `clean`.
-- **App Bundling:** The `make app` command triggers `scripts/bundle.sh`, which creates the `FolderSync.app` directory structure, copies the compiled binary and resources (like `Info.plist`), injects the Git version, and performs ad-hoc codesigning (`codesign --force --deep --sign -`).
+- **App Bundling:** The `make app` command triggers `scripts/bundle.sh`, which creates the `Tandem.app` directory structure, copies the compiled binary and resources (like `Info.plist`), injects the Git version, and performs ad-hoc codesigning (`codesign --force --deep --sign -`).

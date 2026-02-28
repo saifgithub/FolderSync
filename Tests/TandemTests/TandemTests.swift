@@ -1,5 +1,5 @@
 import XCTest
-@testable import FolderSyncCore
+@testable import TandemCore
 
 // MARK: - DiffEngine Tests
 

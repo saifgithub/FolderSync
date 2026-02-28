@@ -40,13 +40,13 @@ jobs:
           scripts/bundle.sh release
 
       - name: Verify codesign
-        run: codesign --verify --deep --strict dist/FolderSync.app
+        run: codesign --verify --deep --strict dist/Tandem.app
 
       - name: Upload app bundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FolderSync-app-${{ github.sha }}
-          path: dist/FolderSync.app
+          name: Tandem-app-${{ github.sha }}
+          path: dist/Tandem.app
           retention-days: 7
 
   # ── Release job: runs only on version tags (v*.*.*) ───────────────────────
@@ -89,9 +89,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: FolderSync ${{ steps.tag.outputs.version }}
+          name: Tandem ${{ steps.tag.outputs.version }}
           body_path: CHANGELOG.md
-          files: dist/FolderSync-*.dmg
+          files: dist/Tandem-*.dmg
           draft: false
           prerelease: false
         env:

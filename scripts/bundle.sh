@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bundle.sh — Assembles FolderSync.app from the SPM build output.
+# bundle.sh — Assembles Tandem.app from the SPM build output.
 #
 # Usage:
 #   ./scripts/bundle.sh [debug|release]       default: debug
@@ -14,8 +14,8 @@
 set -euo pipefail
 
 # ── Config ───────────────────────────────────────────────────────────────────
-PRODUCT_NAME="FolderSync"
-BUNDLE_ID="com.foldersync.app"
+PRODUCT_NAME="Tandem"
+BUNDLE_ID="com.tandemapp.app"
 CONFIG="${1:-debug}"                          # debug | release
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -85,7 +85,7 @@ codesign \
     --force \
     --deep \
     --sign "-" \
-    --entitlements "$RESOURCES_DIR/FolderSync.entitlements" \
+    --entitlements "$RESOURCES_DIR/Tandem.entitlements" \
     --options runtime \
     "$APP_BUNDLE"
 

@@ -201,7 +201,7 @@ final class SettingsViewController: NSViewController {
             alert.runModal()
             return
         }
-        let key = "FolderSync.skipForceCopyConfirmation.pair\(pairId)"
+        let key = "Tandem.skipForceCopyConfirmation.pair\(pairId)"
         guard UserDefaults.standard.bool(forKey: key) else {
             let alert = NSAlert()
             alert.messageText = "No Warnings Suppressed"

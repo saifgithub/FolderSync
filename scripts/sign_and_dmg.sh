@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# sign_and_dmg.sh — Sign FolderSync.app and package it into a DMG.
+# sign_and_dmg.sh — Sign Tandem.app and package it into a DMG.
 #
 # ─────────────────────────────────────────────────────────────────────────────
 # USAGE
@@ -21,11 +21,11 @@
 #     Falls back to hdiutil if create-dmg is not installed.
 #
 # OUTPUT
-#   dist/FolderSync-<version>.dmg
+#   dist/Tandem-<version>.dmg
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
-PRODUCT_NAME="FolderSync"
+PRODUCT_NAME="Tandem"
 CONFIG="${1:-release}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -62,7 +62,7 @@ if [[ -n "$CERT" ]]; then
         --force \
         --deep \
         --options runtime \
-        --entitlements "$ROOT_DIR/Resources/FolderSync.entitlements" \
+        --entitlements "$ROOT_DIR/Resources/Tandem.entitlements" \
         --sign "$CERT" \
         "$APP_BUNDLE"
     echo "  ✓ Signed (Developer ID)"

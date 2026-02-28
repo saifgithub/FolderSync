@@ -240,7 +240,7 @@ final class PairDetailViewController: NSViewController {
 
             // ── Phase 5b: Persist baseline snapshots for first-time matching files ──
             // Files that are `.same` (both sides present and matching) but have NO snapshot
-            // yet represent folders that were already in sync before FolderSync first saw them.
+            // yet represent folders that were already in sync before Tandem first saw them.
             // Writing their snapshot now enables accurate deletion/update tracking on the
             // very next scan — without requiring the user to press Sync first.
             let untrackedSame = diffs.filter {
@@ -307,7 +307,7 @@ final class PairDetailViewController: NSViewController {
                 let table = lines.map { l, v in
                     l.padding(toLength: colW, withPad: " ", startingAt: 0) + "   " + v
                 }.joined(separator: "\n")
-                let logPath = "/tmp/foldersync_timing.txt"
+                let logPath = "/tmp/tandem_timing.txt"
                 let entry = "[Scan Timing — \(pair.name)]\n\(table)\n\n"
                 if let data = entry.data(using: .utf8) {
                     if FileManager.default.fileExists(atPath: logPath),
@@ -634,7 +634,7 @@ final class PairDetailViewController: NSViewController {
     // MARK: - Force copy
 
     private var skipConfirmKey: (SyncPair) -> String {
-        { pair in "FolderSync.skipForceCopyConfirmation.pair\(pair.id ?? 0)" }
+        { pair in "Tandem.skipForceCopyConfirmation.pair\(pair.id ?? 0)" }
     }
 
     private func forceCopy(diff: FileDiff, fromSide: SyncSide, pair: SyncPair) {

@@ -5,16 +5,16 @@
 <dict>
     <!-- Identity -->
     <key>CFBundleIdentifier</key>
-    <string>com.foldersync.app</string>
+    <string>com.tandemapp.app</string>
 
     <key>CFBundleName</key>
-    <string>FolderSync</string>
+    <string>Tandem</string>
 
     <key>CFBundleDisplayName</key>
-    <string>FolderSync</string>
+    <string>Tandem</string>
 
     <key>CFBundleExecutable</key>
-    <string>FolderSync</string>
+    <string>Tandem</string>
 
     <key>CFBundlePackageType</key>
     <string>APPL</string>
@@ -43,16 +43,16 @@
 
     <!-- Privacy usage descriptions (shown in System Settings → Privacy) -->
     <key>NSDesktopFolderUsageDescription</key>
-    <string>FolderSync needs access to read and sync files on your Desktop.</string>
+    <string>Tandem needs access to read and sync files on your Desktop.</string>
 
     <key>NSDocumentsFolderUsageDescription</key>
-    <string>FolderSync needs access to read and sync files in your Documents folder.</string>
+    <string>Tandem needs access to read and sync files in your Documents folder.</string>
 
     <key>NSDownloadsFolderUsageDescription</key>
-    <string>FolderSync needs access to read and sync files in your Downloads folder.</string>
+    <string>Tandem needs access to read and sync files in your Downloads folder.</string>
 
     <key>NSRemovableVolumesUsageDescription</key>
-    <string>FolderSync needs access to sync files on external drives and volumes.</string>
+    <string>Tandem needs access to sync files on external drives and volumes.</string>
 
     <!-- App category -->
     <key>LSApplicationCategoryType</key>

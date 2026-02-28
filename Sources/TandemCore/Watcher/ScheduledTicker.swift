@@ -5,7 +5,7 @@ final class ScheduledTicker {
 
     var onTick: (() -> Void)?
     private var timer: DispatchSourceTimer?
-    private let queue = DispatchQueue(label: "com.foldersync.ticker", qos: .utility)
+    private let queue = DispatchQueue(label: "com.tandem.ticker", qos: .utility)
 
     // MARK: - Start / Stop
 

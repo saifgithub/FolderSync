@@ -1,5 +1,5 @@
 #!/usr/bin/env swift
-// Generates AppIcon.icns for FolderSync.
+// Generates AppIcon.icns for Tandem.
 // Design: two folder icons with circular sync arrows, blue→teal gradient background.
 // Usage:  swift scripts/generate_icon.swift [output-dir]
 

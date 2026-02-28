@@ -18,7 +18,7 @@ final class DatabaseManager {
         let fileURL = try databaseFileURL()
 
         var config = Configuration()
-        config.label = "FolderSync.DatabasePool"
+        config.label = "Tandem.DatabasePool"
 
         let pool = try DatabasePool(path: fileURL.path, configuration: config)
         self.dbPool = pool
@@ -64,9 +64,9 @@ final class DatabaseManager {
             appropriateFor: nil,
             create: true
         )
-        let dir = appSupport.appendingPathComponent("FolderSync", isDirectory: true)
+        let dir = appSupport.appendingPathComponent("Tandem", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir.appendingPathComponent("foldersync.sqlite")
+        return dir.appendingPathComponent("tandem.sqlite")
     }
 
     // MARK: - Migrations

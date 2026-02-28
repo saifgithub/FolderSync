@@ -14,7 +14,7 @@ final class FSEventWatcher {
     private var streamRef: FSEventStreamRef?
     private var debounceTimer: DispatchSourceTimer?
     private var pendingURLs: [URL] = []   // accumulated during the debounce window
-    private let callbackQueue = DispatchQueue(label: "com.foldersync.fsevents", qos: .utility)
+    private let callbackQueue = DispatchQueue(label: "com.tandem.fsevents", qos: .utility)
     private let debounceInterval: TimeInterval
 
     // MARK: - Init

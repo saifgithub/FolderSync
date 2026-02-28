@@ -1,4 +1,4 @@
-# Contributing to FolderSync
+# Contributing to Tandem
 
 Thank you for your interest in contributing! This document explains how to get started.
 
@@ -15,8 +15,8 @@ Be respectful and constructive. Everyone is welcome regardless of experience lev
 1. **Fork** the repository and clone your fork:
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/FolderSync.git
-   cd FolderSync
+   git clone https://github.com/saifgithub/Tandem.git
+   cd Tandem
    ```
 
 2. **Install build prerequisites:**
@@ -26,7 +26,7 @@ Be respectful and constructive. Everyone is welcome regardless of experience lev
 3. **Build and run:**
 
    ```bash
-   make app   # assembles dist/FolderSync.app
+   make app   # assembles dist/Tandem.app
    make run   # builds and opens the app
    ```
 
@@ -93,7 +93,7 @@ Use the [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md) issue template. Inclu
 - macOS version and hardware (Apple Silicon / Intel)
 - Steps to reproduce
 - Expected vs. actual behaviour
-- Console log output if available (`Console.app` → filter for "FolderSync")
+- Console log output if available (`Console.app` → filter for "Tandem")
 
 ---
 

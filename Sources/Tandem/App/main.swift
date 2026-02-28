@@ -1,0 +1,3 @@
+import TandemCore
+
+TandemApp.run()

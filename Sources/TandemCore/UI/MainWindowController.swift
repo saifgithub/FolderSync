@@ -14,7 +14,7 @@ final class MainWindowController: NSWindowController {
     }
 
     // MARK: - Background sync queue
-    private let syncQueue = DispatchQueue(label: "com.foldersync.syncqueue", qos: .userInitiated)
+    private let syncQueue = DispatchQueue(label: "com.tandem.syncqueue", qos: .userInitiated)
 
     // MARK: - Init
 
@@ -25,7 +25,7 @@ final class MainWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "FolderSync"
+        window.title = "Tandem"
         window.setFrameAutosaveName("MainWindow")
         window.minSize = NSSize(width: 800, height: 500)
         self.init(window: window)

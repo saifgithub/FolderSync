@@ -36,12 +36,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Compute the default URL to show in the prompt.
         let defaultURL = (try? DatabaseManager.defaultDatabaseURL())
             ?? URL(fileURLWithPath: NSHomeDirectory())
-                .appendingPathComponent("Library/Application Support/FolderSync/foldersync.sqlite")
+                .appendingPathComponent("Library/Application Support/Tandem/tandem.sqlite")
 
         let alert = NSAlert()
-        alert.messageText     = "Where should FolderSync store its database?"
+        alert.messageText     = "Where should Tandem store its database?"
         alert.informativeText = """
-            FolderSync keeps all your sync pairs, rules, and history in a SQLite database.
+            Tandem keeps all your sync pairs, rules, and history in a SQLite database.
 
             Default location:
             \(defaultURL.path)
@@ -61,8 +61,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // Open a save panel
             let panel = NSSavePanel()
             panel.title             = "Choose Database Location"
-            panel.message           = "Pick a folder and filename for the FolderSync database."
-            panel.nameFieldStringValue = "foldersync.sqlite"
+            panel.message           = "Pick a folder and filename for the Tandem database."
+            panel.nameFieldStringValue = "tandem.sqlite"
             panel.directoryURL      = defaultURL.deletingLastPathComponent()
             panel.allowedContentTypes = [.init(filenameExtension: "sqlite") ?? .data]
             panel.canCreateDirectories = true
@@ -72,7 +72,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 if FileManager.default.fileExists(atPath: chosen.path) {
                     let a = NSAlert()
                     a.messageText     = "A database already exists here"
-                    a.informativeText = "FolderSync found an existing database at:\n\(chosen.path)\n\nDo you want to use this existing database (e.g. from another computer), or start completely fresh?"
+                    a.informativeText = "Tandem found an existing database at:\n\(chosen.path)\n\nDo you want to use this existing database (e.g. from another computer), or start completely fresh?"
                     a.addButton(withTitle: "Use Existing")
                     a.addButton(withTitle: "Start Fresh")
                     a.alertStyle = .informational

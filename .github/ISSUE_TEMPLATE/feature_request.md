@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest an idea or improvement for FolderSync
+about: Suggest an idea or improvement for Tandem
 title: "[Feature] "
 labels: enhancement
 assignees: ''

@@ -1,4 +1,4 @@
-# FolderSync — User Manual
+# Tandem — User Manual
 
 **Version 1.0** · macOS 14 (Sonoma) and later
 
@@ -25,7 +25,7 @@
 
 ## 1. Overview
 
-FolderSync keeps two folders — **Left** and **Right** — in sync with each other. It shows you exactly what has changed before anything is written, lets you exclude files or folders you don't want synced, and automatically moves any replaced or deleted file to a safe backup location instead of discarding it permanently.
+Tandem keeps two folders — **Left** and **Right** — in sync with each other. It shows you exactly what has changed before anything is written, lets you exclude files or folders you don't want synced, and automatically moves any replaced or deleted file to a safe backup location instead of discarding it permanently.
 
 **Key capabilities:**
 - Visual diff tree showing every file state side-by-side
@@ -40,20 +40,20 @@ FolderSync keeps two folders — **Left** and **Right** — in sync with each ot
 
 ### From a DMG
 
-1. Download **FolderSync-x.x.x.dmg** from the [Releases](https://github.com/saifgithub/FolderSync/releases) page.
+1. Download **Tandem-x.x.x.dmg** from the [Releases](https://github.com/saifgithub/Tandem/releases) page.
 2. Double-click the DMG to mount it.
-3. Drag **FolderSync.app** into the **Applications** shortcut.
+3. Drag **Tandem.app** into the **Applications** shortcut.
 4. Eject the DMG.
-5. Open **FolderSync** from Launchpad or `/Applications`.
+5. Open **Tandem** from Launchpad or `/Applications`.
 
-> **First-launch Gatekeeper prompt:** Because FolderSync is distributed ad-hoc signed, macOS may show a security prompt. Right-click (or Control-click) the app in Finder and choose **Open**, then click **Open** in the dialog. You only need to do this once.
+> **First-launch Gatekeeper prompt:** Because Tandem is distributed ad-hoc signed, macOS may show a security prompt. Right-click (or Control-click) the app in Finder and choose **Open**, then click **Open** in the dialog. You only need to do this once.
 
 ### Granting Folder Access
 
-FolderSync needs Full Disk Access or at minimum access to the folders you intend to sync. If you see permission errors:
+Tandem needs Full Disk Access or at minimum access to the folders you intend to sync. If you see permission errors:
 
 1. Open **System Settings → Privacy & Security → Files and Folders** (or **Full Disk Access**).
-2. Add **FolderSync** and enable it.
+2. Add **Tandem** and enable it.
 
 ---
 
@@ -94,7 +94,7 @@ FolderSync needs Full Disk Access or at minimum access to the folders you intend
 5. Choose a **Sync Mode** (see [§7 Sync Modes](#7-sync-modes)).
 6. Click **Add**.
 
-FolderSync immediately performs an initial scan.
+Tandem immediately performs an initial scan.
 
 ### Renaming a Pair
 
@@ -156,7 +156,7 @@ The diff tree is updated whenever you click **Scan**. No automatic sync occurs. 
 
 ### Real-Time
 
-Uses macOS FSEvents to detect file system changes instantly. A brief debounce delay (default 2 seconds) prevents excessive syncs during rapid writes. FolderSync will automatically scan and optionally sync after changes are detected.
+Uses macOS FSEvents to detect file system changes instantly. A brief debounce delay (default 2 seconds) prevents excessive syncs during rapid writes. Tandem will automatically scan and optionally sync after changes are detected.
 
 > **Note:** Real-time mode does not automatically sync — it triggers a fresh scan. You still click **Sync** to apply changes (unless auto-sync is enabled in Preferences).
 
@@ -190,7 +190,7 @@ The Conflict Resolution panel shows a side-by-side Quick Look preview of both ve
 
 ## 9. Exclusion Rules
 
-Exclusion rules tell FolderSync to ignore certain files or folders during the scan entirely.
+Exclusion rules tell Tandem to ignore certain files or folders during the scan entirely.
 
 ### Adding an Exclusion Rule
 
@@ -209,7 +209,7 @@ Exclusion rules tell FolderSync to ignore certain files or folders during the sc
 
 ### Quick-Add from Tree
 
-Right-click any file in the diff tree → **Add to Exclusions**. FolderSync pre-fills the rule with the file's name and lets you choose the rule type before saving.
+Right-click any file in the diff tree → **Add to Exclusions**. Tandem pre-fills the rule with the file's name and lets you choose the rule type before saving.
 
 ### Managing Rules
 
@@ -221,10 +221,10 @@ Rules are listed in the Exclusions panel. Select a rule and click **`−`** to r
 
 ### How Backups Work
 
-Every time FolderSync would overwrite or delete a file, it first moves the existing file to a **backup location** with a timestamp suffix:
+Every time Tandem would overwrite or delete a file, it first moves the existing file to a **backup location** with a timestamp suffix:
 
 ```
-~/Library/Application Support/FolderSync/Backups/
+~/Library/Application Support/Tandem/Backups/
   └── PairName/
         └── 2026-02-28T14-32-10_notes.txt
 ```
@@ -249,7 +249,7 @@ Click **History** in the toolbar to open the Backup History panel. It shows:
 
 ## 11. Preferences
 
-Open **FolderSync → Preferences** (⌘,).
+Open **Tandem → Preferences** (⌘,).
 
 | Setting | Description |
 |---|---|
@@ -257,7 +257,7 @@ Open **FolderSync → Preferences** (⌘,).
 | **Show Same Files** | Whether to display unchanged files in the diff tree. |
 | **Default Backup Location** | The base path used for backups when a pair hasn't specified its own. |
 | **Debounce Interval** | How long (in seconds) to wait after a file-system event before triggering a scan (Real-Time mode). |
-| **Launch at Login** | Register FolderSync as a login item. |
+| **Launch at Login** | Register Tandem as a login item. |
 
 ---
 
@@ -292,14 +292,14 @@ Open **FolderSync → Preferences** (⌘,).
 This happens with ad-hoc signed builds. In Terminal:
 
 ```bash
-xattr -cr /Applications/FolderSync.app
+xattr -cr /Applications/Tandem.app
 ```
 
 Then try opening again.
 
 ### Scan Is Slow on Large Folders
 
-FolderSync computes SHA-256 checksums for every file to detect changes accurately. On first scan of a very large folder (e.g. hundreds of thousands of files), this may take several minutes. Subsequent scans are faster because only modified files are re-checksummed.
+Tandem computes SHA-256 checksums for every file to detect changes accurately. On first scan of a very large folder (e.g. hundreds of thousands of files), this may take several minutes. Subsequent scans are faster because only modified files are re-checksummed.
 
 To speed things up:
 - Add exclusion rules for `node_modules`, `.git`, `build` folders, or other large generated directories.
@@ -307,14 +307,14 @@ To speed things up:
 
 ### Permission Denied Errors
 
-FolderSync needs read/write access to both folders and the backup location. Check:
+Tandem needs read/write access to both folders and the backup location. Check:
 
-1. **System Settings → Privacy & Security → Files and Folders** — ensure FolderSync has access.
-2. The user account running FolderSync owns or has write permissions for both folders.
+1. **System Settings → Privacy & Security → Files and Folders** — ensure Tandem has access.
+2. The user account running Tandem owns or has write permissions for both folders.
 
 ### Files Re-Appear After Deletion
 
-If a sync pair's mode is **bidirectional** and you delete a file on one side, FolderSync may restore it from the other side. To permanently delete a file from both sides, first delete it from both Left and Right, then run a scan and sync (both sides will show it as absent, and the diff engine will leave it deleted).
+If a sync pair's mode is **bidirectional** and you delete a file on one side, Tandem may restore it from the other side. To permanently delete a file from both sides, first delete it from both Left and Right, then run a scan and sync (both sides will show it as absent, and the diff engine will leave it deleted).
 
 ### Clashes That Can't Be Resolved
 
@@ -322,23 +322,23 @@ If Quick Look shows blank previews (certain binary formats), use **Reveal in Fin
 
 ### Checking Logs
 
-FolderSync writes diagnostic messages to the macOS unified log. To view them:
+Tandem writes diagnostic messages to the macOS unified log. To view them:
 
 ```bash
-log show --last 5m --predicate 'processImagePath CONTAINS[c] "foldersync"' --style compact
+log show --last 5m --predicate 'processImagePath CONTAINS[c] "tandem"' --style compact
 ```
 
-Or open **Console.app** and filter for `FolderSync`.
+Or open **Console.app** and filter for `Tandem`.
 
 ---
 
 ## 14. Privacy & Security
 
-- FolderSync does **not** connect to the internet. There are no analytics, telemetry, or cloud services.
-- All data (sync pair configuration, tracked file records, backup history) is stored locally in an SQLite database at `~/Library/Application Support/FolderSync/foldersync.db`.
-- Backup files are stored locally at the path you configure (default: `~/Library/Application Support/FolderSync/Backups/`).
+- Tandem does **not** connect to the internet. There are no analytics, telemetry, or cloud services.
+- All data (sync pair configuration, tracked file records, backup history) is stored locally in an SQLite database at `~/Library/Application Support/Tandem/tandem.db`.
+- Backup files are stored locally at the path you configure (default: `~/Library/Application Support/Tandem/Backups/`).
 - File checksums (SHA-256) are stored in the database solely for change detection; they are never transmitted anywhere.
 
 ---
 
-*For support, bug reports, or feature requests, please open an issue on [GitHub](https://github.com/saifgithub/FolderSync/issues).*
+*For support, bug reports, or feature requests, please open an issue on [GitHub](https://github.com/saifgithub/Tandem/issues).*

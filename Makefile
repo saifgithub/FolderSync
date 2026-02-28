@@ -1,17 +1,17 @@
-# FolderSync — Makefile
+# Tandem — Makefile
 # All development stays in VSCode; this file is the only Xcode-less build interface.
 #
 # Targets:
 #   make build    — swift build (debug)
 #   make release  — swift build --release
 #   make test     — swift test
-#   make app      — assemble dist/FolderSync.app (debug, ad-hoc signed)
-#   make app-rel  — assemble dist/FolderSync.app (release, ad-hoc signed)
+#   make app      — assemble dist/Tandem.app (debug, ad-hoc signed)
+#   make app-rel  — assemble dist/Tandem.app (release, ad-hoc signed)
 #   make run      — build app then open it
 #   make install  — copy .app to /Applications
 #   make clean    — remove build artefacts and dist/
 
-PRODUCT   := FolderSync
+PRODUCT   := Tandem
 DIST      := dist
 APP       := $(DIST)/$(PRODUCT).app
 SCRIPT    := scripts/bundle.sh

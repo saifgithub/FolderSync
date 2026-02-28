@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "FolderSync",
+    name: "Tandem",
     platforms: [
         .macOS(.v14)
     ],
@@ -12,25 +12,25 @@ let package = Package(
     targets: [
         // ── Core library — all app logic, importable by tests ───────────────
         .target(
-            name: "FolderSyncCore",
+            name: "TandemCore",
             dependencies: [
                 .product(name: "GRDB", package: "GRDB.swift")
             ],
-            path: "Sources/FolderSyncCore"
+            path: "Sources/TandemCore"
         ),
 
         // ── Executable — just the entry point ───────────────────────────────
         .executableTarget(
-            name: "FolderSync",
-            dependencies: ["FolderSyncCore"],
-            path: "Sources/FolderSync"
+            name: "Tandem",
+            dependencies: ["TandemCore"],
+            path: "Sources/Tandem"
         ),
 
         // ── Tests ────────────────────────────────────────────────────────────
         .testTarget(
-            name: "FolderSyncTests",
-            dependencies: ["FolderSyncCore"],
-            path: "Tests/FolderSyncTests"
+            name: "TandemTests",
+            dependencies: ["TandemCore"],
+            path: "Tests/TandemTests"
         )
     ]
 )

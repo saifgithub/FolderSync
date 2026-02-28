@@ -18,7 +18,7 @@ final class DatabaseManager {
         let fileURL = try databaseFileURL()
 
         var config = Configuration()
-        config.label = "FolderSync.DatabasePool"
+        config.label = "Tandem.DatabasePool"
 
         let pool = try DatabasePool(path: fileURL.path, configuration: config)
         self.dbPool = pool
@@ -58,9 +58,9 @@ final class DatabaseManager {
     // MARK: - File location
 
     /// UserDefaults key under which the user-chosen DB path is persisted.
-    static let dbPathKey = "FolderSync.databasePath"
+    static let dbPathKey = "Tandem.databasePath"
 
-    /// The factory-default location: ~/Library/Application Support/FolderSync/foldersync.sqlite
+    /// The factory-default location: ~/Library/Application Support/Tandem/tandem.sqlite
     static func defaultDatabaseURL() throws -> URL {
         let appSupport = try FileManager.default.url(
             for: .applicationSupportDirectory,
@@ -68,9 +68,9 @@ final class DatabaseManager {
             appropriateFor: nil,
             create: true
         )
-        let dir = appSupport.appendingPathComponent("FolderSync", isDirectory: true)
+        let dir = appSupport.appendingPathComponent("Tandem", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir.appendingPathComponent("foldersync.sqlite")
+        return dir.appendingPathComponent("tandem.sqlite")
     }
 
     private func databaseFileURL() throws -> URL {

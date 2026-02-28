@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to FolderSync are documented here.
+All notable changes to Tandem are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -18,7 +18,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [1.0.0] — 2026-02-28
 
 ### Added
-- Initial release of FolderSync
+- Initial release of Tandem
 - Multiple sync pair management via sidebar
 - Side-by-side diff tree (`NSOutlineView`) showing New, Updated, Deleted, Same, Clash states
 - Manual, Real-Time (FSEvents), and Scheduled sync modes
@@ -31,11 +31,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - App preferences window
 - GRDB.swift SQLite persistence for sync pairs, tracked files, backup records, and exclusion rules
 - Native AppKit programmatic UI (no Storyboards / XIBs)
-- Swift Package Manager project structure with `FolderSyncCore` library and `FolderSync` executable targets
+- Swift Package Manager project structure with `TandemCore` library and `Tandem` executable targets
 - Makefile build system (`build`, `release`, `app`, `app-rel`, `run`, `test`, `install`, `clean`)
 - Ad-hoc code signing via `scripts/bundle.sh`
 
 ---
 
-[Unreleased]: https://github.com/saifgithub/FolderSync/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/saifgithub/FolderSync/releases/tag/v1.0.0
+[Unreleased]: https://github.com/saifgithub/Tandem/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/saifgithub/Tandem/releases/tag/v1.0.0

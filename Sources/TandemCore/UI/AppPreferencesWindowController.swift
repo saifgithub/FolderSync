@@ -22,7 +22,7 @@ final class AppPreferencesWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "FolderSync Preferences"
+        window.title = "Tandem Preferences"
         window.setFrameAutosaveName("AppPreferencesWindow")
         super.init(window: window)
         buildLayout()
@@ -64,7 +64,7 @@ final class AppPreferencesWindowController: NSWindowController {
 
         // ── Restart note ────────────────────────────────────────────────────
         let note = NSTextField(wrappingLabelWithString:
-            "Changing the location takes effect after you restart FolderSync.")
+            "Changing the location takes effect after you restart Tandem.")
         note.font      = .systemFont(ofSize: 11)
         note.textColor = .secondaryLabelColor
 
@@ -111,7 +111,7 @@ final class AppPreferencesWindowController: NSWindowController {
 
         let panel = NSSavePanel()
         panel.title                  = "Choose New Database Location"
-        panel.message                = "Pick a folder and filename for the FolderSync database."
+        panel.message                = "Pick a folder and filename for the Tandem database."
         panel.nameFieldStringValue   = currentURL.lastPathComponent
         panel.directoryURL           = currentURL.deletingLastPathComponent()
         panel.canCreateDirectories   = true
@@ -138,7 +138,7 @@ final class AppPreferencesWindowController: NSWindowController {
         if dstExists {
             // Destination already has a database — most likely from another computer.
             alert.messageText     = "A database already exists at that location"
-            alert.informativeText = "FolderSync found an existing database at:\n\(dst.path)\n\nDo you want to use this existing database (e.g. migrated from another computer), or overwrite it by moving your current database there?"
+            alert.informativeText = "Tandem found an existing database at:\n\(dst.path)\n\nDo you want to use this existing database (e.g. migrated from another computer), or overwrite it by moving your current database there?"
             alert.addButton(withTitle: "Use Existing")          // 1st
             if srcExists {
                 alert.addButton(withTitle: "Overwrite with Current") // 2nd
@@ -211,7 +211,7 @@ final class AppPreferencesWindowController: NSWindowController {
         guard let window else { return }
         let a = NSAlert()
         a.messageText     = "Restart Required"
-        a.informativeText = "The new database location will be used the next time FolderSync starts."
+        a.informativeText = "The new database location will be used the next time Tandem starts."
         a.addButton(withTitle: "OK")
         a.alertStyle = .informational
         a.beginSheetModal(for: window) { _ in }

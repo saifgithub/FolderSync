@@ -1,4 +1,4 @@
-# FolderSync
+# Tandem
 
 > A native macOS folder-synchronisation utility with a side-by-side diff tree, real-time file watching, secure backups, and multi-pair support.
 
@@ -40,17 +40,17 @@
 
 ### Pre-built DMG (recommended)
 
-1. Download the latest **FolderSync-x.x.x.dmg** from the [Releases](../../releases) page.
-2. Open the DMG and drag **FolderSync.app** to your `/Applications` folder.
+1. Download the latest **Tandem-x.x.x.dmg** from the [Releases](../../releases) page.
+2. Open the DMG and drag **Tandem.app** to your `/Applications` folder.
 3. Right-click → **Open** on first launch (Gatekeeper prompt for ad-hoc signed builds).
 
 ### Build from source
 
 ```bash
-git clone https://github.com/saifgithub/FolderSync.git
-cd FolderSync
-make app-rel          # release build → dist/FolderSync.app
-open dist/FolderSync.app
+git clone https://github.com/saifgithub/Tandem.git
+cd Tandem
+make app-rel          # release build → dist/Tandem.app
+open dist/Tandem.app
 ```
 
 Or install directly to `/Applications`:
@@ -67,8 +67,8 @@ make install
 |---|---|
 | `make build` | Debug build (Swift Package Manager) |
 | `make release` | Release build |
-| `make app` | Assemble `dist/FolderSync.app` (debug, ad-hoc signed) |
-| `make app-rel` | Assemble `dist/FolderSync.app` (release, ad-hoc signed) |
+| `make app` | Assemble `dist/Tandem.app` (debug, ad-hoc signed) |
+| `make app-rel` | Assemble `dist/Tandem.app` (release, ad-hoc signed) |
 | `make run` | Build debug app then open it |
 | `make test` | Run unit tests |
 | `make install` | Release-build and copy to `/Applications` |
@@ -96,8 +96,8 @@ See [`scripts/sign_and_dmg.sh`](scripts/sign_and_dmg.sh) for full documentation.
 
 ```
 Sources/
-├── FolderSync/          # Executable target — just main.swift
-└── FolderSyncCore/      # Library target — all app logic
+├── Tandem/          # Executable target — just main.swift
+└── TandemCore/      # Library target — all app logic
     ├── App/             # NSApplicationDelegate, app entry point
     ├── Data/            # GRDB database, models (SyncPair, TrackedFile, …)
     ├── SyncEngine/      # FileScanner, DiffEngine, FileOperator, SyncManager, BackupManager
@@ -117,4 +117,4 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
 ## License
 
-FolderSync is released under the [MIT License](LICENSE).
+Tandem is released under the [MIT License](LICENSE).
