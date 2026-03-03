@@ -145,6 +145,7 @@ final class MainWindowController: NSWindowController {
                     // Update tree in-place — no rescan.
                     self?.pairDetailVC.applySyncResult(result)
                     self?.pairListVC.reload()
+                    self?.showSyncSummary(result: result, pair: pair, isManual: true)
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -173,6 +174,10 @@ final class MainWindowController: NSWindowController {
                         self?.pairDetailVC.applySyncResult(result)
                     }
                     self?.pairListVC.reload()
+                    // Only surface the summary for real-time sync when intervention is needed.
+                    if result.clashes.count > 0 || result.errors.count > 0 {
+                        self?.showSyncSummary(result: result, pair: pair, isManual: false)
+                    }
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -183,6 +188,19 @@ final class MainWindowController: NSWindowController {
     }
 
     // MARK: - Sheets
+
+    // MARK: Sync summary popup
+
+    private func showSyncSummary(result: SyncResult, pair: SyncPair, isManual: Bool) {
+        let vc = SyncSummaryViewController(result: result, pair: pair, isManual: isManual)
+        vc.onViewConflicts = { [weak self] in
+            self?.window?.contentViewController?.dismiss(vc)
+            if let clash = result.clashes.first {
+                self?.showConflictResolution(diff: clash, pair: pair)
+            }
+        }
+        window?.contentViewController?.presentAsSheet(vc)
+    }
 
     func showSettings(for pair: SyncPair?) {
         let vc = SettingsViewController(pair: pair)

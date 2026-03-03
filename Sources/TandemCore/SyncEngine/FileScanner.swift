@@ -54,7 +54,7 @@ final class FileScanner {
         let enumerator = fm.enumerator(
             at: rootURL,
             includingPropertiesForKeys: [.fileSizeKey, .contentModificationDateKey, .isDirectoryKey],
-            options: [.skipsHiddenFiles]
+            options: []
         )
 
         let resourceKeys: Set<URLResourceKey> = [.fileSizeKey, .contentModificationDateKey, .isDirectoryKey]
@@ -201,7 +201,7 @@ final class FileScanner {
         case cancelled
         var errorDescription: String? {
             switch self {
-            case .rootNotFound(let p): return "Folder not found: \(p)"
+            case .rootNotFound(let p): return "Drive offline — folder not found: \(p)"
             case .cancelled:           return "Scan was cancelled."
             }
         }

@@ -190,32 +190,137 @@ The Conflict Resolution panel shows a side-by-side Quick Look preview of both ve
 
 ## 9. Exclusion Rules
 
-Exclusion rules tell Tandem to ignore certain files or folders during the scan entirely.
+Exclusion rules tell Tandem to ignore certain files or folders entirely during the scan. Excluded paths are never diffed, synced, or backed up.
 
-### Adding an Exclusion Rule
+There are two scopes:
 
-1. Select a sync pair.
-2. Click **Exclusions** in the toolbar.
-3. Click **`+`** and configure the rule.
+| Scope | Where to find it | Applies to |
+|---|---|---|
+| **Pair rules** | Pair settings → **Exclusions** tab | One specific sync pair |
+| **Global rules** | **Tandem menu → Preferences… → Global Exclusions** tab | Every pair in the app |
+
+---
 
 ### Rule Types
 
-| Type | Example | What it matches |
-|---|---|---|
-| **Filename** | `.DS_Store` | Any file with exactly this name, anywhere in the tree. |
-| **Folder Name** | `node_modules` | Any folder with this name (and all its contents). |
-| **Relative Path** | `build/output.log` | A specific path relative to the sync root. |
-| **Glob Pattern** | `*.tmp`, `cache/**` | Files matching the glob (uses `fnmatch`). |
+| Type | Matches against | Example | What it does |
+|---|---|---|---|
+| **Filename** | Filename only (any depth) | `.DS_Store` | Skips every file with exactly this name, anywhere in the tree. |
+| **Glob Pattern** | Filename only | `*.tmp`, `~$*`, `*.bak` | Skips filenames matching the shell glob (`*` and `?` wildcards, via `fnmatch`). |
+| **Folder (subtree)** | Relative path prefix | `node_modules/`, `build/`, `.git/` | Skips the entire subtree rooted at this folder path (trailing `/` optional). |
+| **File Path** | Exact relative path | `config/secrets.json` | Skips one specific file relative to the sync root. |
 
-### Quick-Add from Tree
-
-Right-click any file in the diff tree → **Add to Exclusions**. Tandem pre-fills the rule with the file's name and lets you choose the rule type before saving.
-
-### Managing Rules
-
-Rules are listed in the Exclusions panel. Select a rule and click **`−`** to remove it. Changes take effect on the next scan.
+> **Tip:** Hover over the **Type** column header in the Exclusions panel for a quick reference card of all types with examples. Each item in the Type drop-down also shows a per-type description when hovered.
 
 ---
+
+### Opening the Exclusions Panel
+
+1. Select a sync pair in the sidebar.
+2. Click the pair's **Settings** button (⚙) and open the **Exclusions** tab.  
+   The tab label shows the current rule count — e.g. **Exclusions (3)** — so you can see at a glance whether rules are active.
+
+---
+
+### Adding a Rule
+
+Click **`+ Add`** in the button toolbar. A sheet appears where you can:
+
+- Choose the **Type** from the drop-down. A live hint label below the picker explains the selected type with an example, updating as you switch types.
+- Enter the **Pattern** (filename, path, or glob expression).
+- Optionally add a **Note** — a short reminder for your own reference (e.g. "macOS metadata", "CI build output").
+
+Click **Add** to save. The rule appears at the bottom of the list and takes effect on the next scan.
+
+**Double-click** any rule in the list to edit it.
+
+---
+
+### Preset Templates
+
+Click **Presets ▾** to insert a commonly-used exclusion pattern from a curated library, organised into groups:
+
+| Group | Patterns included |
+|---|---|
+| **macOS** | `.DS_Store`, `.localized`, `.Spotlight-V100/`, `.Trashes/`, `.fseventsd/`, `__MACOSX/` |
+| **Windows** | `Thumbs.db`, `desktop.ini`, `System Volume Information/` |
+| **Temp & Build** | `*.tmp`, `*.log`, `*.bak`, `*.swp`, `.git/`, `node_modules/`, `__pycache__/`, `.cache/`, `.gradle/`, `build/`, `dist/`, `.next/` |
+| **Office / Lock files** | `~$*` (Office lock files), `.~lock.*` (LibreOffice locks) |
+
+Selecting a preset inserts it immediately with a pre-filled note. You can then edit the pattern if needed.
+
+---
+
+### Live Path Testing
+
+The **Test path** bar sits between the rule list and the toolbar. Type any relative path (e.g. `docs/report.tmp` or `node_modules/lodash/index.js`) and Tandem instantly shows which rule — if any — would match it:
+
+- **✓ "pattern" (Type)** in green — a specific rule matches this path.
+- **✗ No rule matches** — the path would pass through to the diff engine.
+
+The test result updates in real time as you type or as you modify rules.
+
+---
+
+### Reordering Rules
+
+Drag any row by its left edge to reorder it. Tandem evaluates rules top-to-bottom, stopping at the first match; order can matter when patterns overlap. The new order is persisted to the database immediately.
+
+---
+
+### Bulk Enable / Disable (Context Menu)
+
+Right-click anywhere on the rule list to access bulk operations:
+
+| Action | Effect |
+|---|---|
+| **Enable All** | Enables every rule in the list. |
+| **Disable All** | Disables every rule without deleting it. |
+| **Toggle All** | Flips the enabled state of every rule individually. |
+| **Enable Selected** | Enables only the highlighted rows. |
+| **Disable Selected** | Disables only the highlighted rows. |
+
+Disabling a rule suspends it without losing the pattern — useful for temporarily allowing a file through.
+
+---
+
+### Duplicating & Removing Rules
+
+- **Duplicate** — Select a rule and click **Duplicate** to copy it (e.g. as the starting point for a similar pattern).
+- **Remove** — Select one or more rules (hold ⌘ or ⇧ to multi-select) and click **Remove**. A confirmation prompt appears before deletion.
+
+---
+
+### Import & Export
+
+You can save your rules to a JSON file and reload them later — or share them across machines or pairs.
+
+- **Export…** — Opens a save panel. All current rules are written to a `.json` file (DB-internal fields like IDs are stripped; only type, pattern, enabled state, and note are saved).
+- **Import…** — Opens an open panel. Rules from the file are appended after the existing rules; any rule already present is not deduplicated automatically.
+
+The JSON format is a plain array of objects:
+
+```json
+[
+  { "ruleType": "filename", "pattern": ".DS_Store", "isEnabled": true, "note": "macOS metadata" },
+  { "ruleType": "glob",     "pattern": "*.tmp",      "isEnabled": true, "note": "" }
+]
+```
+
+---
+
+### Quick-Add from the Diff Tree
+
+Right-click any file in the diff tree → **Add to Exclusions**. Tandem pre-fills a new rule with the file's relative path and opens the edit sheet so you can confirm or change the type before saving.
+
+---
+
+### Global Exclusions
+
+Open **Tandem → Preferences… (⌘,)** and click the **Global Exclusions** tab. The interface is identical to pair-scoped rules. Global rules are applied in addition to any pair-level rules — both sets are merged before each scan.
+
+---
+
 
 ## 10. Backup & History
 

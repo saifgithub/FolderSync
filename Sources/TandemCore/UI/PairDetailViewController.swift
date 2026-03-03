@@ -84,6 +84,22 @@ final class PairDetailViewController: NSViewController {
         currentDiffs = []
         currentExcludedDiffs = []
         applyDiffs([])
+
+        // Check that both folders are reachable before scanning.
+        // If a drive is offline the scan would immediately fail — skip it and
+        // show a clear warning instead of a cryptic error in the status bar.
+        let fm = FileManager.default
+        var missing: [String] = []
+        if !fm.fileExists(atPath: pair.leftPath)  { missing.append(URL(fileURLWithPath: pair.leftPath).lastPathComponent) }
+        if !fm.fileExists(atPath: pair.rightPath) { missing.append(URL(fileURLWithPath: pair.rightPath).lastPathComponent) }
+        if !missing.isEmpty {
+            let noun = missing.count == 1 ? "folder" : "folders"
+            showStatusMessage("\u{26a0}\u{fe0f}  Drive offline \u{2014} \(noun) not found: \(missing.joined(separator: " \u{00b7} "))")
+            syncButton.isEnabled = false
+            scanButton.isEnabled = false
+            return
+        }
+
         reload(pair: pair)  // auto-scan on selection
     }
 
@@ -206,6 +222,13 @@ final class PairDetailViewController: NSViewController {
                 DispatchQueue.main.async { [weak self] in
                     self?.stopProgress()
                     if case FileScanner.ScanError.cancelled = err { return }
+                    if case FileScanner.ScanError.rootNotFound(let path) = err {
+                        let name = URL(fileURLWithPath: path).lastPathComponent
+                        self?.syncButton.isEnabled = false
+                        self?.scanButton.isEnabled = false
+                        self?.showStatusMessage("\u{26a0}\u{fe0f}  Drive offline \u{2014} folder not found: \(name)")
+                        return
+                    }
                     self?.showStatusMessage("Scan error: \(err.localizedDescription)")
                 }
                 return
@@ -540,25 +563,30 @@ final class PairDetailViewController: NSViewController {
 
     private func bindTreeCallbacks() {
         let handler: (TreeViewController) -> Void = { [weak self] treeVC in
-            guard let self, let pair = currentPair else { return }
+            guard let self else { return }
 
-            treeVC.onSyncFile = { diff in
+            treeVC.onSyncFile = { [weak self] diff in
+                guard let self, let pair = self.currentPair else { return }
                 self.onSyncRequested?(pair, SyncOptions(), [diff])
             }
 
-            treeVC.onCopyFile = { diff, fromSide in
+            treeVC.onCopyFile = { [weak self] diff, fromSide in
+                guard let self, let pair = self.currentPair else { return }
                 self.forceCopy(diff: diff, fromSide: fromSide, pair: pair)
             }
 
-            treeVC.onCopyFolder = { node, fromSide in
+            treeVC.onCopyFolder = { [weak self] node, fromSide in
+                guard let self, let pair = self.currentPair else { return }
                 self.forceCopyFolder(node: node, fromSide: fromSide, pair: pair)
             }
 
-            treeVC.onResolveClash = { diff in
+            treeVC.onResolveClash = { [weak self] diff in
+                guard let self, let pair = self.currentPair else { return }
                 self.onResolveClash?(diff, pair)
             }
 
-            treeVC.onAddExclusion = { diff in
+            treeVC.onAddExclusion = { [weak self] diff in
+                guard let self, let pair = self.currentPair else { return }
                 self.addQuickExclusion(for: diff, pair: pair)
             }
         }
@@ -650,9 +678,10 @@ final class PairDetailViewController: NSViewController {
                 rightSnapshot: diff.rightSnapshot
             )
             var opts = SyncOptions()
-            opts.syncUpdated = true
-            opts.syncNew     = true
-            opts.syncDeleted = false
+            opts.syncUpdated  = true
+            opts.syncNew      = true
+            opts.syncDeleted  = false
+            opts.isForceCopy  = true
             onSyncRequested?(pair, opts, [syntheticDiff])
         }
 
@@ -730,9 +759,10 @@ final class PairDetailViewController: NSViewController {
                 )
             }
             var opts = SyncOptions()
-            opts.syncUpdated = true
-            opts.syncNew     = true
-            opts.syncDeleted = false
+            opts.syncUpdated  = true
+            opts.syncNew      = true
+            opts.syncDeleted  = false
+            opts.isForceCopy  = true
             onSyncRequested?(pair, opts, synthetics)
         }
 
@@ -758,13 +788,18 @@ final class PairDetailViewController: NSViewController {
 
     private func addQuickExclusion(for diff: FileDiff, pair: SyncPair) {
         guard let pairId = pair.id else { return }
-        var rule = ExclusionRule(
-            pairId: pairId,
-            ruleType: .filepath,
-            pattern: diff.relativePath,
-            isEnabled: true
-        )
         do {
+            let existingCount = (try? DatabaseManager.shared.read { db in
+                try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM exclusion_rules WHERE pairId = ?",
+                                 arguments: [pairId])
+            } ?? 0) ?? 0
+            var rule = ExclusionRule(
+                pairId:    pairId,
+                ruleType:  .filepath,
+                pattern:   diff.relativePath,
+                isEnabled: true,
+                sortOrder: existingCount
+            )
             try DatabaseManager.shared.write { db in try rule.insert(db) }
             reload(pair: pair)
         } catch {

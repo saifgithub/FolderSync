@@ -153,6 +153,41 @@ final class DatabaseManager {
             }
         }
 
+        // ── v2: global exclusion rules + per-rule notes ────────────────────
+        // Adds a `note` column (human-readable description) and makes `pairId`
+        // nullable so that a rule with pairId = NULL applies to every pair.
+        // SQLite cannot alter a NOT NULL constraint in-place, so the table is
+        // recreated using the recommended 12-step approach (foreign_keys off).
+        migrator.registerMigration("v2_exclusion_global_notes") { db in
+            try db.execute(sql: "PRAGMA foreign_keys = OFF")
+            try db.create(table: "exclusion_rules_new") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("pairId", .integer)
+                    .indexed()
+                    .references("sync_pairs", onDelete: .cascade)  // nullable FK
+                t.column("ruleType",  .text).notNull()
+                t.column("pattern",   .text).notNull()
+                t.column("isEnabled", .boolean).notNull().defaults(to: true)
+                t.column("note",      .text).notNull().defaults(to: "")
+            }
+            try db.execute(sql: """
+                INSERT INTO exclusion_rules_new (id, pairId, ruleType, pattern, isEnabled, note)
+                SELECT id, pairId, ruleType, pattern, isEnabled, '' FROM exclusion_rules
+                """)
+            try db.execute(sql: "DROP TABLE exclusion_rules")
+            try db.execute(sql: "ALTER TABLE exclusion_rules_new RENAME TO exclusion_rules")
+            try db.execute(sql: "PRAGMA foreign_keys = ON")
+        }
+
+        // ── v3: user-defined sort order ────────────────────────────────────
+        migrator.registerMigration("v3_exclusion_sort_order") { db in
+            try db.alter(table: "exclusion_rules") { t in
+                t.add(column: "sortOrder", .integer).notNull().defaults(to: 0)
+            }
+            // Seed sortOrder from existing id so the order is deterministic.
+            try db.execute(sql: "UPDATE exclusion_rules SET sortOrder = CAST(id AS INTEGER)")
+        }
+
         // ── future migrations go here ────────────────────────────────────────
         // migrator.registerMigration("v2_...") { db in ... }
 

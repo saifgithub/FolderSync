@@ -105,6 +105,10 @@ final class SettingsViewController: NSViewController {
 
         let exclusionTab   = NSTabViewItem(identifier: "exclusions")
         exclusionTab.label = "Exclusions"
+        // Set callback before accessing .view (which triggers viewDidLoad → loadRules)
+        exclusionVC.onCountChanged = { [weak exclusionTab] count in
+            exclusionTab?.label = count > 0 ? "Exclusions (\(count))" : "Exclusions"
+        }
         exclusionTab.view  = exclusionVC.view
 
         tabView.addTabViewItem(generalTab)

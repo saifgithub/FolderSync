@@ -3,11 +3,20 @@ import Foundation
 // MARK: - SyncResult
 
 struct SyncResult {
-    var copied:    [(relativePath: String, from: SyncSide)] = []
+    /// Files that were absent on one side and copied across (new arrivals).
+    var newFiles:     [(relativePath: String, from: SyncSide)] = []
+    /// Files that existed on both sides but were out of date on one side.
+    var updatedFiles: [(relativePath: String, from: SyncSide)] = []
+    /// All files that were copied (new + updated) — computed for backward compatibility.
+    var copied: [(relativePath: String, from: SyncSide)] { newFiles + updatedFiles }
+
     var deleted:   [(relativePath: String, side: SyncSide)] = []
     var backedUp:  [BackupRecord] = []
     var clashes:   [FileDiff] = []     // left untouched, require user action
     var errors:    [(relativePath: String, error: Error)] = []
+
+    /// Wall-clock seconds for the full sync operation (0 for incremental).
+    var wallTime: TimeInterval = 0
 
     var totalChanges: Int { copied.count + deleted.count }
 }
@@ -25,6 +34,9 @@ struct SyncOptions {
     var skipClashes: Bool = true
     /// Back up before overwriting (requires pair.backupEnabled).
     var useBackup: Bool = true
+    /// When true, skip the pre-copy safety check (dest stat comparison).
+    /// Set for force-copy operations where the user has already confirmed intent.
+    var isForceCopy: Bool = false
 }
 
 // MARK: - SyncManager
@@ -61,7 +73,10 @@ final class SyncManager {
         progress("Loading exclusion rules…")
         let t0excl = CFAbsoluteTimeGetCurrent()
         let exclusions = try DatabaseManager.shared.read { db in
-            try ExclusionRule.filter(sql: "pairId = \(pairId)").fetchAll(db)
+            // Pair-specific rules + global rules (pairId IS NULL) are both applied.
+            let pairRules   = try ExclusionRule.filter(sql: "pairId = ?", arguments: [pairId]).fetchAll(db)
+            let globalRules = try ExclusionRule.filter(sql: "pairId IS NULL").fetchAll(db)
+            return pairRules + globalRules
         }
         let tExclusionsRead = CFAbsoluteTimeGetCurrent() - t0excl
 
@@ -185,6 +200,7 @@ final class SyncManager {
         let table = lines.map { l, v in l.padding(toLength: colW, withPad: " ", startingAt: 0) + "    " + v }.joined(separator: "\n")
         print("\n[Sync Timing Report]\n\(table)\n")
         progress("Done — \(result.totalChanges) change(s), \(result.clashes.count) clash(es), \(result.errors.count) error(s).")
+        result.wallTime = tSyncWall
         return result
     }
 
@@ -210,7 +226,8 @@ final class SyncManager {
             guard options.syncNew else { break }
             // Safety check: destination must still be absent — if it appeared since
             // the scan the situation is now a clash.
-            guard safetyCheck(diff: diff, leftRoot: leftRoot, rightRoot: rightRoot) else {
+            // Skipped for force-copy operations (user has already confirmed intent).
+            guard options.isForceCopy || safetyCheck(diff: diff, leftRoot: leftRoot, rightRoot: rightRoot) else {
                 progress("⚠️  \(relPath): destination appeared after scan — skipping (now a clash)")
                 result.clashes.append(upgradedToClash(diff))
                 break
@@ -219,13 +236,14 @@ final class SyncManager {
             fileCopy(relPath, side)
             let (src, dst) = urls(for: relPath, newFileSide: side, leftRoot: leftRoot, rightRoot: rightRoot)
             try fileOperator.copy(from: src, to: dst)
-            result.copied.append((relativePath: relPath, from: side))
+            result.newFiles.append((relativePath: relPath, from: side))
 
         case .updated(let newerSide):
             guard options.syncUpdated else { break }
             // Safety check: destination must still match what we scanned — if it
             // changed in the meantime both sides are now modified, i.e. a clash.
-            guard safetyCheck(diff: diff, leftRoot: leftRoot, rightRoot: rightRoot) else {
+            // Skipped for force-copy operations (user has already confirmed intent).
+            guard options.isForceCopy || safetyCheck(diff: diff, leftRoot: leftRoot, rightRoot: rightRoot) else {
                 progress("⚠️  \(relPath): destination changed after scan — skipping (now a clash)")
                 result.clashes.append(upgradedToClash(diff))
                 break
@@ -245,7 +263,7 @@ final class SyncManager {
                 }
             }
             try fileOperator.copy(from: src, to: dst)
-            result.copied.append((relativePath: relPath, from: newerSide))
+            result.updatedFiles.append((relativePath: relPath, from: newerSide))
 
         case .deleted(let deletedFrom):
             guard options.syncDeleted else { break }
@@ -338,7 +356,10 @@ final class SyncManager {
         guard let pairId = pair.id else { throw SyncError.invalidPair }
 
         let exclusions = try DatabaseManager.shared.read { db in
-            try ExclusionRule.filter(sql: "pairId = \(pairId)").fetchAll(db)
+            // Pair-specific rules + global rules (pairId IS NULL) are both applied.
+            let pairRules   = try ExclusionRule.filter(sql: "pairId = ?", arguments: [pairId]).fetchAll(db)
+            let globalRules = try ExclusionRule.filter(sql: "pairId IS NULL").fetchAll(db)
+            return pairRules + globalRules
         }
 
         let leftRoot      = URL(fileURLWithPath: pair.leftPath)

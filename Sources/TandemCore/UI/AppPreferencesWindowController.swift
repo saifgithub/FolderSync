@@ -8,21 +8,25 @@ final class AppPreferencesWindowController: NSWindowController {
     // MARK: - Singleton (so Cmd+, re-focuses the same window)
     static let shared = AppPreferencesWindowController()
 
-    // MARK: - UI
+    // MARK: - UI — Database tab
     private let pathField   = NSTextField()
     private let changeBtn   = NSButton(title: "Change…",         target: nil, action: nil)
     private let revealBtn   = NSButton(title: "Show in Finder",  target: nil, action: nil)
+
+    // MARK: - UI — Global Exclusions tab
+    private lazy var globalExclusionVC = ExclusionRulesViewController(mode: .global)
 
     // MARK: - Init
 
     private init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 160),
-            styleMask: [.titled, .closable, .miniaturizable],
+            contentRect: NSRect(x: 0, y: 0, width: 560, height: 480),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
         window.title = "Tandem Preferences"
+        window.minSize = NSSize(width: 480, height: 380)
         window.setFrameAutosaveName("AppPreferencesWindow")
         super.init(window: window)
         buildLayout()
@@ -35,6 +39,45 @@ final class AppPreferencesWindowController: NSWindowController {
     private func buildLayout() {
         guard let window else { return }
 
+        // ── Database tab view ───────────────────────────────────────────────
+        let dbView = buildDatabaseTabView()
+
+        // ── Global Exclusions tab view ──────────────────────────────────────
+        // Use a proper NSViewController as content owner so that
+        // globalExclusionVC is a fully managed child view-controller.
+        let contentVC = NSViewController()
+        contentVC.view = NSView()
+        window.contentViewController = contentVC
+        contentVC.addChild(globalExclusionVC)
+
+        // ── Tab view ─────────────────────────────────────────────────────────
+        let tabView = NSTabView()
+
+        let dbTab       = NSTabViewItem(identifier: "database")
+        dbTab.label     = "Database"
+        dbTab.view      = dbView
+
+        let exclTab     = NSTabViewItem(identifier: "globalExclusions")
+        exclTab.label   = "Global Exclusions"
+        // Set callback before accessing .view (which triggers viewDidLoad → loadRules)
+        globalExclusionVC.onCountChanged = { [weak exclTab] count in
+            exclTab?.label = count > 0 ? "Global Exclusions (\(count))" : "Global Exclusions"
+        }
+        exclTab.view    = globalExclusionVC.view
+
+        tabView.addTabViewItem(dbTab)
+        tabView.addTabViewItem(exclTab)
+        tabView.translatesAutoresizingMaskIntoConstraints = false
+        contentVC.view.addSubview(tabView)
+        NSLayoutConstraint.activate([
+            tabView.topAnchor.constraint(equalTo: contentVC.view.topAnchor),
+            tabView.leadingAnchor.constraint(equalTo: contentVC.view.leadingAnchor),
+            tabView.trailingAnchor.constraint(equalTo: contentVC.view.trailingAnchor),
+            tabView.bottomAnchor.constraint(equalTo: contentVC.view.bottomAnchor)
+        ])
+    }
+
+    private func buildDatabaseTabView() -> NSView {
         // ── Section header ──────────────────────────────────────────────────
         let sectionLabel = NSTextField(labelWithString: "DATABASE LOCATION")
         sectionLabel.font        = .systemFont(ofSize: 10, weight: .semibold)
@@ -82,13 +125,18 @@ final class AppPreferencesWindowController: NSWindowController {
             stack.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             stack.trailingAnchor.constraint(equalTo: container.trailingAnchor),
             stack.topAnchor.constraint(equalTo: container.topAnchor),
-            stack.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-            pathField.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -40),
+            pathField.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -40)
         ])
-        window.contentView = container
+        return container
     }
 
     // MARK: - Helpers
+
+    override func showWindow(_ sender: Any?) {
+        super.showWindow(sender)
+        // Reload in case rules were added/deleted from a pair's settings sheet.
+        globalExclusionVC.loadRules()
+    }
 
     private func refreshPath() {
         let current = UserDefaults.standard.string(forKey: DatabaseManager.dbPathKey)

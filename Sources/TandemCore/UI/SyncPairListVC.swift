@@ -177,6 +177,12 @@ extension SyncPairListVC: NSTableViewDelegate {
         let pair = pairs[row]
         let cell = NSTableCellView()
 
+        // Offline detection — check if either root folder is reachable
+        let fm = FileManager.default
+        let leftOffline  = !fm.fileExists(atPath: pair.leftPath)
+        let rightOffline = !fm.fileExists(atPath: pair.rightPath)
+        let isOffline    = leftOffline || rightOffline
+
         // Name
         let nameField = NSTextField(labelWithString: pair.name)
         nameField.font = .systemFont(ofSize: 13, weight: .medium)
@@ -184,12 +190,19 @@ extension SyncPairListVC: NSTableViewDelegate {
         cell.addSubview(nameField)
         cell.textField = nameField
 
-        // Folder subtitle
+        // Folder subtitle — show offline warning when a drive is missing
         let left  = (pair.leftPath  as NSString).lastPathComponent
         let right = (pair.rightPath as NSString).lastPathComponent
-        let subtitleField = NSTextField(labelWithString: "⇄ \(left) / \(right)")
+        let subtitleString: String
+        if isOffline {
+            let offlineNames = [leftOffline ? left : nil, rightOffline ? right : nil].compactMap { $0 }
+            subtitleString = "\u{26a0}\u{fe0f}  Offline: \(offlineNames.joined(separator: ", "))"
+        } else {
+            subtitleString = "\u{21c4} \(left) / \(right)"
+        }
+        let subtitleField = NSTextField(labelWithString: subtitleString)
         subtitleField.font = .systemFont(ofSize: 10)
-        subtitleField.textColor = .secondaryLabelColor
+        subtitleField.textColor = isOffline ? .systemOrange : .secondaryLabelColor
         subtitleField.translatesAutoresizingMaskIntoConstraints = false
         cell.addSubview(subtitleField)
 

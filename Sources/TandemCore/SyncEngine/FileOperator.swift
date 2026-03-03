@@ -11,13 +11,26 @@ final class FileOperator {
 
     /// Copies `sourceURL` to `destinationURL`, creating intermediate directories as needed.
     /// If a file already exists at the destination it is replaced atomically.
+    /// The destination's modification date is explicitly stamped to match the source so that
+    /// the DB snapshot (which stores the source's modifiedAt) stays in sync with disk reality.
     func copy(from sourceURL: URL, to destinationURL: URL) throws {
         try createParentDirectoryIfNeeded(for: destinationURL)
+
+        // Capture source modification date BEFORE the copy — replaceItemAt does not
+        // guarantee the resulting file keeps the source's modification date.
+        let srcMod = (try? sourceURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
 
         if fm.fileExists(atPath: destinationURL.path) {
             _ = try fm.replaceItemAt(destinationURL, withItemAt: sourceURL)
         } else {
             try fm.copyItem(at: sourceURL, to: destinationURL)
+        }
+
+        // Stamp destination mod date to exactly match source.
+        // This keeps the file on disk, the pre-copy scan metadata, and the DB snapshot
+        // all in agreement so the next scan does not see a false "updated" diff.
+        if let mod = srcMod {
+            try? fm.setAttributes([.modificationDate: mod], ofItemAtPath: destinationURL.path)
         }
     }
 

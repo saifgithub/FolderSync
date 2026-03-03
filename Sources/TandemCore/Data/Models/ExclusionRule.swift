@@ -1,14 +1,19 @@
 import GRDB
 import Foundation
 
-/// A single exclusion rule scoped to one sync pair.
+/// A single exclusion rule.
+///
+/// When `pairId` is non-nil the rule applies only to that sync pair.
+/// When `pairId` is nil the rule is **global** and applies to every pair.
 struct ExclusionRule: Codable, FetchableRecord, MutablePersistableRecord, Identifiable {
 
     var id: Int64?
-    var pairId: Int64
+    var pairId: Int64?      // nil = global rule (applies to all pairs)
     var ruleType: RuleType
     var pattern: String     // the glob / path / filename string
     var isEnabled: Bool     // can be toggled without deleting
+    var note: String = ""   // optional human-readable description
+    var sortOrder: Int = 0  // user-defined display order
 
     // MARK: - Table
     static let databaseTableName = "exclusion_rules"
@@ -20,11 +25,45 @@ struct ExclusionRule: Codable, FetchableRecord, MutablePersistableRecord, Identi
         static let ruleType  = Column("ruleType")
         static let pattern   = Column("pattern")
         static let isEnabled = Column("isEnabled")
+        static let note      = Column("note")
+        static let sortOrder = Column("sortOrder")
     }
 
     // MARK: - MutablePersistableRecord
     mutating func didInsert(_ inserted: InsertionSuccess) {
         id = inserted.rowID
+    }
+
+    // MARK: - Codable — custom decoder for forward/backward compatibility
+    // `init(from:)` in the struct body suppresses the synthesised memberwise init,
+    // so we provide an explicit one below for all programmatic call-sites.
+    init(from decoder: Decoder) throws {
+        let c     = try decoder.container(keyedBy: CodingKeys.self)
+        id        = try c.decodeIfPresent(Int64.self,   forKey: .id)
+        pairId    = try c.decodeIfPresent(Int64.self,   forKey: .pairId)
+        ruleType  = try c.decode(RuleType.self,         forKey: .ruleType)
+        pattern   = try c.decode(String.self,           forKey: .pattern)
+        isEnabled = try c.decode(Bool.self,             forKey: .isEnabled)
+        note      = (try c.decodeIfPresent(String.self, forKey: .note))      ?? ""
+        sortOrder = (try c.decodeIfPresent(Int.self,    forKey: .sortOrder)) ?? 0
+    }
+
+    /// Explicit memberwise-like init so call-sites are not broken when
+    /// the synthesised init is suppressed by the Decodable init above.
+    init(id:        Int64?     = nil,
+         pairId:    Int64?     = nil,
+         ruleType:  RuleType,
+         pattern:   String,
+         isEnabled: Bool       = true,
+         note:      String     = "",
+         sortOrder: Int        = 0) {
+        self.id        = id
+        self.pairId    = pairId
+        self.ruleType  = ruleType
+        self.pattern   = pattern
+        self.isEnabled = isEnabled
+        self.note      = note
+        self.sortOrder = sortOrder
     }
 
     // MARK: - RuleType
@@ -44,6 +83,20 @@ struct ExclusionRule: Codable, FetchableRecord, MutablePersistableRecord, Identi
             case .glob:     return "Glob Pattern"
             case .folder:   return "Folder (subtree)"
             case .filepath: return "File Path"
+            }
+        }
+
+        /// Short description + example shown in the edit sheet and as a popup-item tooltip.
+        var typeHint: String {
+            switch self {
+            case .filename:
+                return "Exact filename match anywhere in the tree.\nExample: .DS_Store  •  Thumbs.db"
+            case .glob:
+                return "Shell glob matched against the filename only (* and ? wildcards).\nExample: *.tmp  •  ~$*  •  *.bak"
+            case .folder:
+                return "Skip an entire subtree starting at this folder path (trailing / optional).\nExample: node_modules/  •  build/  •  .git/"
+            case .filepath:
+                return "Exact relative path from the sync root.\nExample: config/secrets.json  •  dist/bundle.min.js"
             }
         }
     }
