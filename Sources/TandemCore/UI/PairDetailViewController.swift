@@ -570,14 +570,14 @@ final class PairDetailViewController: NSViewController {
                 self.onSyncRequested?(pair, SyncOptions(), [diff])
             }
 
-            treeVC.onCopyFile = { [weak self] diff, fromSide in
+            treeVC.onCopyFiles = { [weak self] diffs, fromSide in
                 guard let self, let pair = self.currentPair else { return }
-                self.forceCopy(diff: diff, fromSide: fromSide, pair: pair)
+                self.forceCopyFiles(diffs: diffs, fromSide: fromSide, pair: pair)
             }
 
-            treeVC.onCopyFolder = { [weak self] node, fromSide in
+            treeVC.onCopyFolders = { [weak self] nodes, fromSide in
                 guard let self, let pair = self.currentPair else { return }
-                self.forceCopyFolder(node: node, fromSide: fromSide, pair: pair)
+                self.forceCopyFolders(nodes: nodes, fromSide: fromSide, pair: pair)
             }
 
             treeVC.onResolveClash = { [weak self] diff in
@@ -665,32 +665,77 @@ final class PairDetailViewController: NSViewController {
         { pair in "Tandem.skipForceCopyConfirmation.pair\(pair.id ?? 0)" }
     }
 
-    private func forceCopy(diff: FileDiff, fromSide: SyncSide, pair: SyncPair) {
-        let key = skipConfirmKey(pair)
+    /// Force-copies one or more selected file diffs in `fromSide → opposite` direction.
+    /// Skips files that are already identical on both sides (Issue 2) and files whose
+    /// source does not exist on disk (Issue 3), showing an informational alert when
+    /// there is nothing valid to copy.
+    private func forceCopyFiles(diffs: [FileDiff], fromSide: SyncSide, pair: SyncPair) {
+        // Filter: skip already-synced files and those without a source file on fromSide
+        let actionable = diffs.filter { diff in
+            guard diff.status != .same else { return false }
+            return fromSide == .left ? diff.leftFile != nil : diff.rightFile != nil
+        }
+
+        guard !actionable.isEmpty else {
+            let info = NSAlert()
+            info.messageText = "Nothing to Force Copy"
+            info.informativeText = diffs.count == 1
+                ? "The selected file is already identical on both sides."
+                : "All selected files are already identical on both sides or the source file is absent."
+            info.alertStyle = .informational
+            info.addButton(withTitle: "OK")
+            info.runModal()
+            return
+        }
+
+        let key      = skipConfirmKey(pair)
+        let destSide = fromSide.opposite
 
         func proceed() {
-            let syntheticDiff = FileDiff(
-                relativePath:  diff.relativePath,
-                status:        .updated(newer: fromSide),
-                leftFile:      diff.leftFile,
-                rightFile:     diff.rightFile,
-                leftSnapshot:  diff.leftSnapshot,
-                rightSnapshot: diff.rightSnapshot
-            )
+            let synthetics = actionable.map { diff in
+                FileDiff(
+                    relativePath:  diff.relativePath,
+                    status:        .updated(newer: fromSide),
+                    leftFile:      diff.leftFile,
+                    rightFile:     diff.rightFile,
+                    leftSnapshot:  diff.leftSnapshot,
+                    rightSnapshot: diff.rightSnapshot
+                )
+            }
             var opts = SyncOptions()
             opts.syncUpdated  = true
             opts.syncNew      = true
             opts.syncDeleted  = false
             opts.isForceCopy  = true
-            onSyncRequested?(pair, opts, [syntheticDiff])
+            onSyncRequested?(pair, opts, synthetics)
         }
 
         if UserDefaults.standard.bool(forKey: key) { proceed(); return }
 
         let alert = NSAlert()
-        alert.messageText = "Force Copy \(fromSide.arrowTo(fromSide.opposite))?"
-        alert.informativeText = "\"\(diff.relativePath)\" on the \(fromSide.opposite.displayName) side will be overwritten with the \(fromSide.displayName) version.\n\nThe overwritten file will be moved to the backup folder first (if backup is enabled)."
-        alert.addButton(withTitle: "Force Copy")
+        if actionable.count == 1 {
+            let diff = actionable[0]
+            alert.messageText = "Force Copy \(fromSide.arrowTo(destSide))?"
+            alert.informativeText = "\"\(diff.relativePath)\" on the \(destSide.displayName) side will be overwritten with the \(fromSide.displayName) version.\n\nThe overwritten file will be moved to the backup folder first (if backup is enabled)."
+            alert.addButton(withTitle: "Force Copy")
+        } else {
+            let fileWord      = "files"
+            let newCount      = actionable.filter { fromSide == .left ? $0.rightFile == nil : $0.leftFile == nil }.count
+            let overwriteCount = actionable.count - newCount
+            var bodyLines: [String] = []
+            if newCount > 0 && overwriteCount == 0 {
+                bodyLines.append("\(actionable.count) \(fileWord) will be copied to the \(destSide.displayName) side.")
+            } else if overwriteCount > 0 && newCount == 0 {
+                bodyLines.append("\(actionable.count) \(fileWord) will overwrite existing \(destSide.displayName) versions.")
+                bodyLines.append("Overwritten files will be moved to the backup folder first (if backup is enabled).")
+            } else {
+                bodyLines.append("\(newCount) new \(newCount == 1 ? "file" : "files") will be created and \(overwriteCount) will overwrite existing \(destSide.displayName) versions.")
+                bodyLines.append("Overwritten files will be moved to the backup folder first (if backup is enabled).")
+            }
+            alert.messageText = "Force Copy \(actionable.count) Files \(fromSide.arrowTo(destSide))?"
+            alert.informativeText = bodyLines.joined(separator: "\n\n")
+            alert.addButton(withTitle: "Force Copy \(actionable.count) Files")
+        }
         alert.addButton(withTitle: "Cancel")
         alert.alertStyle = .warning
 
@@ -703,25 +748,37 @@ final class PairDetailViewController: NSViewController {
         proceed()
     }
 
-    private func forceCopyFolder(node: TreeNode, fromSide: SyncSide, pair: SyncPair) {
-        // Collect all leaf diffs that exist on the source side
-        var diffs: [FileDiff] = []
+    /// Force-copies all source-side files within one or more selected directory nodes.
+    /// Skips files already in sync (Issue 2) and files absent on the source side (Issue 3).
+    private func forceCopyFolders(nodes: [TreeNode], fromSide: SyncSide, pair: SyncPair) {
+        // Collect leaves from all nodes, deduplicating and filtering
+        var seen  = Set<String>()
+        var diffs = [FileDiff]()
+
         func collectLeaves(_ n: TreeNode) {
             if n.isLeaf, let diff = n.diff {
-                let exists = fromSide == .left ? diff.leftFile != nil : diff.rightFile != nil
-                if exists { diffs.append(diff) }
+                guard !seen.contains(diff.relativePath) else { return }
+                guard diff.status != .same else { return }  // skip already-synced
+                let sourceExists = fromSide == .left ? diff.leftFile != nil : diff.rightFile != nil
+                guard sourceExists else { return }          // skip absent source
+                seen.insert(diff.relativePath)
+                diffs.append(diff)
             } else {
                 n.children.forEach(collectLeaves)
             }
         }
-        collectLeaves(node)
+        nodes.forEach(collectLeaves)
 
-        // No source files — guide the user to the correct direction
         guard !diffs.isEmpty else {
             let destSide = fromSide.opposite
             let hint = NSAlert()
-            hint.messageText = "No \(fromSide.displayName) Files in \"\(node.displayName)\""
-            hint.informativeText = "There are no files on the \(fromSide.displayName) side of this folder to copy.\n\nIf you want to copy \(destSide.displayName) files to \(fromSide.displayName), use \"Force Copy Folder \(destSide.arrowTo(fromSide))\" instead."
+            if nodes.count == 1 {
+                hint.messageText = "No \(fromSide.displayName) Files to Copy in \"\(nodes[0].displayName)\""
+                hint.informativeText = "There are no out-of-sync files on the \(fromSide.displayName) side of this folder.\n\nIf you want to copy \(destSide.displayName) files to \(fromSide.displayName), use \"Force Copy Folder \(destSide.arrowTo(fromSide))\" instead."
+            } else {
+                hint.messageText = "Nothing to Force Copy"
+                hint.informativeText = "None of the selected folders contain \(fromSide.displayName) files that are out of sync."
+            }
             hint.alertStyle = .informational
             hint.addButton(withTitle: "OK")
             hint.runModal()
@@ -732,7 +789,6 @@ final class PairDetailViewController: NSViewController {
         let destSide = fromSide.opposite
         let fileWord = diffs.count == 1 ? "file" : "files"
 
-        // Distinguish truly new files (destination absent) from overwrites
         let newCount       = diffs.filter { fromSide == .left ? $0.rightFile == nil : $0.leftFile == nil }.count
         let overwriteCount = diffs.count - newCount
 
@@ -750,11 +806,11 @@ final class PairDetailViewController: NSViewController {
         func proceed() {
             let synthetics = diffs.map { diff in
                 FileDiff(
-                    relativePath: diff.relativePath,
-                    status:       .updated(newer: fromSide),
-                    leftFile:     diff.leftFile,
-                    rightFile:    diff.rightFile,
-                    leftSnapshot: diff.leftSnapshot,
+                    relativePath:  diff.relativePath,
+                    status:        .updated(newer: fromSide),
+                    leftFile:      diff.leftFile,
+                    rightFile:     diff.rightFile,
+                    leftSnapshot:  diff.leftSnapshot,
                     rightSnapshot: diff.rightSnapshot
                 )
             }
@@ -768,8 +824,9 @@ final class PairDetailViewController: NSViewController {
 
         if UserDefaults.standard.bool(forKey: key) { proceed(); return }
 
+        let folderDesc = nodes.count == 1 ? "\"\(nodes[0].displayName)\"" : "\(nodes.count) Folders"
         let alert = NSAlert()
-        alert.messageText = "Force Copy Folder \"\(node.displayName)\" — \(fromSide.arrowTo(destSide))?"
+        alert.messageText = "Force Copy \(folderDesc) — \(fromSide.arrowTo(destSide))?"
         alert.informativeText = bodyLines.joined(separator: "\n\n")
         alert.addButton(withTitle: "Force Copy \(diffs.count) \(fileWord.capitalized)")
         alert.addButton(withTitle: "Cancel")

@@ -20,8 +20,8 @@ final class TreeViewController: NSViewController {
 
     // MARK: - Callbacks
     var onSyncFile:    ((FileDiff) -> Void)?
-    var onCopyFile:    ((FileDiff, SyncSide) -> Void)?
-    var onCopyFolder:  ((TreeNode, SyncSide) -> Void)?
+    var onCopyFiles:   (([FileDiff], SyncSide) -> Void)?
+    var onCopyFolders: (([TreeNode], SyncSide) -> Void)?
     var onDeleteFile:  ((FileDiff, SyncSide) -> Void)?
     var onResolveClash:((FileDiff) -> Void)?
     var onAddExclusion:((FileDiff) -> Void)?
@@ -82,7 +82,7 @@ final class TreeViewController: NSViewController {
         outlineView.dataSource = self
         outlineView.delegate   = self
         outlineView.headerView = NSTableHeaderView()
-        outlineView.allowsMultipleSelection = false
+        outlineView.allowsMultipleSelection = true
         outlineView.rowSizeStyle = .default
         outlineView.usesAlternatingRowBackgroundColors = true
         outlineView.menu = buildContextMenu()
@@ -155,24 +155,59 @@ final class TreeViewController: NSViewController {
         onSyncFile?(diff)
     }
 
+    // MARK: - Multi-selection helpers
+
+    /// Returns the set of rows to act on for the current context-menu invocation.
+    /// If the user right-clicked on a row that is part of the existing selection,
+    /// the entire selection is returned; otherwise only the clicked row.
+    private func rowsForAction() -> IndexSet {
+        let clicked   = outlineView.clickedRow
+        let selection = outlineView.selectedRowIndexes
+        if clicked >= 0, selection.contains(clicked), !selection.isEmpty {
+            return selection
+        }
+        return clicked >= 0 ? IndexSet(integer: clicked) : IndexSet()
+    }
+
+    private func fileDiffsForAction() -> [FileDiff] {
+        rowsForAction().compactMap { row in
+            guard let node = outlineView.item(atRow: row) as? TreeNode,
+                  node.isLeaf,
+                  let diff = node.diff else { return nil }
+            return diff
+        }
+    }
+
+    private func directoryNodesForAction() -> [TreeNode] {
+        rowsForAction().compactMap { row in
+            guard let node = outlineView.item(atRow: row) as? TreeNode,
+                  node.isDirectory else { return nil }
+            return node
+        }
+    }
+
     @objc private func forceCopyLeft() {
-        guard let diff = clickedDiff else { return }
-        onCopyFile?(diff, .left)
+        let diffs = fileDiffsForAction().filter { $0.leftFile != nil }
+        guard !diffs.isEmpty else { return }
+        onCopyFiles?(diffs, .left)
     }
 
     @objc private func forceCopyRight() {
-        guard let diff = clickedDiff else { return }
-        onCopyFile?(diff, .right)
+        let diffs = fileDiffsForAction().filter { $0.rightFile != nil }
+        guard !diffs.isEmpty else { return }
+        onCopyFiles?(diffs, .right)
     }
 
     @objc private func forceCopyFolderLeft() {
-        guard let node = clickedNode, node.isDirectory else { return }
-        onCopyFolder?(node, .left)
+        let nodes = directoryNodesForAction()
+        guard !nodes.isEmpty else { return }
+        onCopyFolders?(nodes, .left)
     }
 
     @objc private func forceCopyFolderRight() {
-        guard let node = clickedNode, node.isDirectory else { return }
-        onCopyFolder?(node, .right)
+        let nodes = directoryNodesForAction()
+        guard !nodes.isEmpty else { return }
+        onCopyFolders?(nodes, .right)
     }
 
     @objc private func resolveClash() {
@@ -266,12 +301,17 @@ final class TreeViewController: NSViewController {
 extension TreeViewController: NSMenuItemValidation {
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         let action = menuItem.action
-        if action == #selector(forceCopyFolderLeft) || action == #selector(forceCopyFolderRight) {
-            // Only enable for directory nodes (not file leaves or root when it has no children)
-            return clickedNode?.isDirectory == true
+        if action == #selector(forceCopyLeft) {
+            // Enabled only when at least one selected file has a source file on the left side
+            return fileDiffsForAction().contains(where: { $0.leftFile != nil })
         }
-        if action == #selector(forceCopyLeft) || action == #selector(forceCopyRight) ||
-           action == #selector(syncFile) || action == #selector(resolveClash) ||
+        if action == #selector(forceCopyRight) {
+            return fileDiffsForAction().contains(where: { $0.rightFile != nil })
+        }
+        if action == #selector(forceCopyFolderLeft) || action == #selector(forceCopyFolderRight) {
+            return !directoryNodesForAction().isEmpty
+        }
+        if action == #selector(syncFile) || action == #selector(resolveClash) ||
            action == #selector(addExclusion) {
             return clickedDiff != nil
         }
